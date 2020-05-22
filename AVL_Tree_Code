@@ -1,0 +1,568 @@
+#include <string>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+struct node{
+	double *k,*v,key,value;
+	struct node *left,*right;
+	int height;
+};
+//string s = "";
+double epsilon;
+//struct node *head;
+
+int height(struct node *a){
+	int lh,rh;
+	if(a==NULL) return 0;
+	if(a->left==NULL) lh=0;
+	else {lh=1+a->left->height;}
+	if(a->right==NULL) rh=0;
+	else rh=1+a->right->height;
+	if(lh>rh) return lh;
+	else return rh;
+}
+
+/*double *newdouble(double d){
+    double *nd;
+    nd = (double *)malloc(sizeof(double));
+    nd = &d;
+    return nd;
+};*/
+struct node *newnode(double d){
+	struct node *ne;
+	ne=(struct node *)malloc(sizeof(struct node));
+	ne->k = &(ne->key);
+	ne->key=d;
+	ne->v = &(ne->value);
+	ne->value=d;
+	ne->left=NULL;
+	ne->right=NULL;
+	ne->height=height(ne);
+	return ne;
+}
+void print2D(struct node *root);
+struct node *rotateright(struct node *x){
+	//cout<<"enter ayyi chachaanu"<<endl;
+	struct node *y=x->left;
+	//cout<<y<<endl;
+	x->left=y->right;
+	y->right=x;
+	//y->height=height(y);
+	x->height=height(x);
+	y->height=height(y);
+	//print2D(x);
+	return y;
+}
+
+struct node *rotateleft(struct node *x){
+    //cout<<"enetered1"<<"  "<<x->key<<endl;
+	struct node *y=x->right;
+	x->right=y->left;
+	y->left=x;
+	x->height=height(x);
+	y->height=height(y);
+	//cout<<endl<<y->height<<endl;
+	//cout<<endl<<x->height<<endl;
+	return y;
+}
+
+int balancefactor(struct node *T){
+	int lh,rh;
+	if(T==NULL)
+		return(0);
+
+	if(T->left==NULL)
+		lh=0;
+	else
+		lh=1+T->left->height;
+
+	if(T->right==NULL)
+		rh=0;
+	else
+		rh=1+T->right->height;
+
+	return(rh-lh);
+}
+
+struct node *min(struct node *head){
+	struct node *temp=head;
+	while(temp->left!=NULL){
+		temp=temp->left;
+	}
+	return temp;
+}
+
+/*struct node *insert(struct node *root,int k){
+	if(root==NULL){
+		root=(struct node*)malloc(sizeof(struct node));
+		root->key=k;
+		root->left=NULL;
+		root->right=NULL;
+	}
+	else{
+		if(k>root->key){
+			root->right=insert(root->right,k);
+			if(balancefactor(root)==2){
+				if(k>root->right->key){
+					return rotateleft(root);
+				}
+				else{
+					root->right=rotateright(root->right);
+					return rotateleft(root);
+				}
+			}
+		}
+		if(k<root->key){
+			root->left=insert(root->left,k);
+			if(balancefactor(root)==-2){
+				if(k<root->left->key){
+					return rotateright(root);
+				}
+				else{
+					root->left=rotateleft(root->left);
+					return rotateright(root);
+				}
+			}
+		}
+		root->height=height(root);
+	}
+	return root;
+}*/
+
+int double_equals(double a, double b )
+{
+    double ep = 0.000000000000001;
+    if((a - b) < ep  &&(a-b)!=0){
+        return -1;
+    }else if(a-b > ep){
+        return 1;
+    }else{
+        return 0;
+    }
+}
+
+struct node* deleteNode(node* root, double key)
+{
+
+    // STEP 1: PERFORM STANDARD BST DELETE
+    if (root == NULL)
+        return root;
+
+    // If the key to be deleted is smaller
+    // than the root's key, then it lies
+    // in left subtree
+    if (double_equals(key , root->key)==-1 )
+        root->left = deleteNode(root->left, key);
+
+    // If the key to be deleted is greater
+    // than the root's key, then it lies
+    // in right subtree
+    else if( double_equals(key , root->key)==1 )
+        root->right = deleteNode(root->right, key);
+
+    // if key is same as root's key, then
+    // This is the node to be deleted
+    else
+    {
+        // node with only one child or no child
+        if( (root->left == NULL) ||
+            (root->right == NULL) )
+        {
+            struct node *temp = root->left ?
+                         root->left :
+                         root->right;
+
+            // No child case
+            if (temp == NULL)
+            {
+                temp = root;
+                root = NULL;
+            }
+            else // One child case
+            *root = *temp; // Copy the contents of
+                           // the non-empty child
+            free(temp);
+        }
+        else
+        {
+            // node with two children: Get the inorder
+            // successor (smallest in the right subtree)
+            node* temp = min(root->right);
+
+            // Copy the inorder successor's
+            // data to this node
+            root->key = temp->key;
+
+            // Delete the inorder successor
+            root->right = deleteNode(root->right,
+                                     temp->key);
+        }
+    }
+
+    // If the tree had only one node
+    // then return
+    if (root == NULL)
+    return root;
+
+    // STEP 2: UPDATE HEIGHT OF THE CURRENT NODE
+    root->height = height(root);
+
+    // STEP 3: GET THE BALANCE FACTOR OF
+    // THIS NODE (to check whether this
+    // node became unbalanced)
+    int balance = -balancefactor(root);
+
+    // If this node becomes unbalanced,
+    // then there are 4 cases
+
+    // Left Left Case
+    if (balance > 1 &&
+        -balancefactor(root->left) >= 0)
+        return rotateright(root);
+
+    // Left Right Case
+    if (balance > 1 &&
+        -balancefactor(root->left) < 0)
+    {
+        root->left = rotateleft(root->left);
+        return rotateright(root);
+    }
+
+    // Right Right Case
+    if (balance < -1 &&
+        -balancefactor(root->right) <= 0)
+        return rotateleft(root);
+
+    // Right Left Case
+    if (balance < -1 &&
+        -balancefactor(root->right) > 0)
+    {
+        root->right = rotateright(root->right);
+        return rotateleft(root);
+    }
+
+    return root;
+}
+
+/*struct node *deleteNode(struct node *root,double k){
+	if(root==NULL) return root;
+	if(double_equals(k , root->key)==-1){
+		root->left=deleteNode(root->left,k);
+		if(balancefactor(root)==2){
+			if(balancefactor(root->left)>=0){
+				return rotateleft(root);
+			}
+			else{
+				root->right=rotateright(root->right);
+				return rotateleft(root);
+			}
+		}
+	}
+	else if(double_equals(k , root->key)==1){
+		root->right=deleteNode(root->right,k);
+		if(balancefactor(root)==-2){
+			if(balancefactor(root->right)<=0){
+				return rotateright(root);
+			}
+			else{
+				root->left=rotateleft(root->left);
+				return rotateright(root);
+			}
+		}
+	}
+	else{
+		if(root->right!=NULL){
+			struct node *temp=min(root->right);
+			root->key=temp->key;
+			root->value = temp->value;
+			root->right=deleteNode(root->right,temp->key);
+			if(balancefactor(root)==-2){
+				if(balancefactor(root->left)<=0){
+					return rotateright(root);
+				}
+				else{
+					root->left=rotateleft(root->left);
+					return rotateright(root);
+				}
+			}
+		}
+		else return root->left;
+	}
+	root->height=height(root);
+	return root;
+}
+*/
+ofstream outfile;
+void preorder(struct node *head){
+	struct node *temp=head;
+	if(temp!=NULL){
+// 		printf("%d(bf==%d)  ",temp->key,balancefactor(temp));
+        preorder(temp->left);
+        outfile<<"("<<temp->key<<","<<temp->value<<")"<<endl;
+        //cout<<"("<<temp->key<<","<<temp->value<<")"<<endl;
+		preorder(temp->right);
+	//	return 0;
+	}
+}
+int COUNT =5;
+void print2DUtil(struct node *root, int space)
+{
+    // Base case
+    if (root == NULL)
+        return;
+
+    // Increase distance between levels
+    space += COUNT;
+
+    // Process right child first
+    print2DUtil(root->right, space);
+
+    // Print current node after space
+    // count
+    cout<<endl;
+    for (int i = COUNT; i < space; i++)
+        cout<<" ";
+    cout<<root->key<<"\n";
+
+    // Process left child
+    print2DUtil(root->left, space);
+}
+
+// Wrapper over print2DUtil()
+void print2D(struct node *root)
+{
+    // Pass initial space count as 0
+    print2DUtil(root, 0);
+}
+
+
+struct node* insert(struct node* node, double key)
+{
+    //cout<<"entering :"<<key<<endl;
+    /* 1.  Perform the normal BST rotation */
+    if (node == NULL)
+        return(newnode(key));
+    //cout<<node->key<<"ikada enter hua"<<key+epsilon<<endl;
+    //bool b = node->key.compareTo(key+epsilon);
+    //cout<<double_equals(node->key ,(key+epsilon))<<endl;
+    if(double_equals(node->key ,key)<1 && (double_equals(node->value ,key)>-1)){
+        //cout<<"i came"<<endl;
+        return node;
+    }else if (double_equals(node->key ,(key+epsilon))==1)
+        {//cout<<"left"<<node->key<<"  "<<key<<endl;
+            node->left  = insert(node->left, key);}
+    else if (double_equals(node->value ,(key-epsilon))==-1){
+        //cout<<"i came"<<endl;
+        //cout<<node->value<<" i came"<<endl;
+        //cout<<"right"<<node->value<<"  "<<key<<endl;
+        node->right = insert(node->right, key);
+    }
+    else if(double_equals(node->key,key)==1 && double_equals(node->key ,(key+epsilon))<1){
+            //cout<<"i came"<<endl;//cout<<node->key<<" entered "<<key<<endl;
+        if(node->left==NULL){
+            node->key = key;
+            return node;
+        }else{
+            //cout<<node->key<<"entered"<<endl;
+            struct node* nodex = node->left;
+            while(nodex->right != NULL){
+                nodex = nodex->right;
+            }
+            if(double_equals(nodex->value ,(key-epsilon))>-1){
+                double temp = nodex->key;
+                //struct node* nodew = node;
+                //cout<<"fir"<<endl;
+                node->left = deleteNode(node->left,temp);
+                node->key = temp;
+                //cout<<"first me"<<endl;
+                //return node;
+            }else{
+                node->key = key;
+                return node;
+            }
+        }
+    }else if(double_equals(node->value,key-epsilon)>-1){
+        //cout<<"i came"<<endl;
+        if(node->right == NULL){
+            node->value = key;
+            return node;
+        }else{
+            struct node* nodex = node->right;
+            while(nodex->left != NULL){
+                nodex = nodex->left;
+            }
+            if(double_equals(nodex->key,key+epsilon)<1){
+                    //cout<<"i came"<<endl;
+                double temp1 = nodex->value;
+                double temp2 = nodex->key;
+                //struct node* nodew = node;
+                //cout<<"sec"<<endl;
+                node->right = deleteNode(node->right,temp2);
+                //cout<<"second me"<<endl;
+                //cout<<"start"<<endl;
+                //preorder(node);
+                //cout<<"end"<<endl;
+                node->value = temp1;
+                //return node;
+            }else{
+                node->value = key;
+                return node;
+            }
+        }
+    }
+    //cout<<node->key<<endl;
+    //cout<<"consider the last one"<<endl;
+    //print2D(node);
+    //cout<<height(node)<<endl;
+    /* 2. Update height of this ancestor node */
+    //cout<<"height before"<<node->height<<endl;
+    node->height = height(node);
+    //cout<<"height after"<<node->height<<endl;
+    int balance = balancefactor(node);
+    //print2D(node);
+    //cout<<balance<<endl;
+    /*if(balance>1 && node->left==NULL && double_equals(key , node->right->key)==1 ){
+        //cout<<"entered"<<endl;
+        struct node *n = rotateleft(node);
+        //print2D(n);
+        return n;
+        //return rotateleft(node);
+    }
+    if(balance>1 && node->left == NULL && double_equals(key , node->right->key)==-1){
+        node->right = rotateright(node->right);
+        //print2D(node);
+        return rotateleft(node);
+    }
+    if(balance < -1 && node->right == NULL && double_equals(key , node->left->key)==1){
+        node->left = rotateleft(node->left);
+        return rotateright(node);
+    }
+    if(balance<-1 && node->right == NULL && double_equals(key , node->left->key)==-1){
+        return rotateright(node);
+    }
+    if (balance <-1 && double_equals(key , node->left->key)==-1)
+        return rotateright(node);
+
+    // Right Right Case done
+    if (balance > 1 && double_equals(key , node->right->key)==1)
+        return rotateleft(node);
+
+    // Left Right Case
+    if (balance <-1 && double_equals(key , node->left->key)==1)
+    {
+        node->left =  rotateleft(node->left);
+        return rotateright(node);
+    }
+
+    // Right Left Case
+    if (balance >1 && double_equals(key , node->right->key)==-1)
+    {
+        //cout<<node->key<<"entered  "<<balancefactor(node)<<endl;
+        node->right = rotateright(node->right);
+        return rotateleft(node);
+    }*/
+
+
+    if(balance>1){
+        int balr = balancefactor(node->right);
+        if(balr > 0){
+            //cout<<"1"<<endl;
+            return rotateleft(node);
+        }else if(balr<0){
+            //cout<<"2"<<endl;
+            node->right = rotateright(node->right);
+            //cout<<"2"<<endl;
+            return rotateleft(node);
+        }else if(balr==0){
+            return rotateleft(node);
+        }
+    }else if(balance < -1){
+        int ball = balancefactor(node->left);
+        if(ball<0){
+            //cout<<"3"<<endl;
+            return rotateright(node);
+        }else if(ball>0){
+            //cout<<"4"<<endl;
+            node->left = rotateleft(node->left);
+            //cout<<"4"<<endl;
+            return rotateright(node);
+        }else if(ball==0){
+            return rotateright(node);
+            //cout<<"i came"<<endl;
+        }
+    }
+
+    /* return the (unchanged) node pointer */
+    return node;
+}
+
+int bal_check(struct node* head){
+    struct node* temp = head;
+    if(temp == NULL){
+        return 0;
+    }
+    if(balancefactor(temp)>1 || balancefactor(temp)<-1){
+        return bal_check(temp->left)+bal_check(temp->right)+1;
+    }else{
+        return bal_check(temp->left)+bal_check(temp->right);
+    }
+}
+
+int main(){
+	struct node *head=NULL;
+	//epsilon = 0.5;
+	/*head=insert(head,1);
+	printf("Preorder:\n");
+	preorder(head);
+	printf("\n");
+	head=insert(head,2);
+	printf("Preorder:\n");
+	preorder(head);
+	printf("\n");
+	head=insert(head,3.5);
+	printf("Preorder:\n");
+	preorder(head);
+	printf("\n");
+	head=insert(head,2.5);
+	printf("Preorder:\n");
+	preorder(head);
+	printf("\n");
+	head=insert(head,4.2);
+	printf("Preorder:\n");
+	preorder(head);
+	printf("\n");
+	head=insert(head,3);
+	printf("Preorder:\n");
+	preorder(head);
+	printf("\n");
+    */
+    //cout<<"started"<<endl;
+    ifstream infile;
+    infile.open("C:\\Users\\burad\\Desktop\\ohm.txt");
+    //ofstream outfile;
+    outfile.open("C:\\Users\\burad\\Desktop\\mho.txt");
+    //cout<<"yes"<<endl;
+    infile>>epsilon;
+    double x;
+    while(infile>>x){
+        head=insert(head,x);
+        //printf("Preorder:\n");
+        //preorder(head);
+        //print2D(head);
+        //cout<<x<<endl;
+
+        //cout<<endl<<s<<endl;
+        //printf("\n");
+        //cout<<x<<endl;
+
+    }
+    preorder(head);
+    //print2D(head);
+    //cout<<endl<<"done"<<endl;
+    //cout<<"It should be zero hopefully  "<< endl;
+    //preorder(head);
+}
+
