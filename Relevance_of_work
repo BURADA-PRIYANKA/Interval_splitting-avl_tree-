@@ -1,0 +1,7 @@
+Why did we improvise the code instead of using inbuilt map ?
+
+When the inbuilt map was being used, while comparing the point to be inserted with the intervals we are using an inbuilt iterator which gives us the intervals in the increasing order of the key that is in the increasing order of the lower bound in this case. This simply makes it a linear search for the intervals. This is equivalently good as a linked list or an array which give us the requried algorithm with time complexity of O(n^2).
+
+Now, we are supposed to modify the iterator such that it eliminates one of the subtrees of a node after we cross that node. But in an inbuilt map, we cannot access its tree.
+
+Because of the above mentioned problem we are supposed to build our own tree which have reduced the worst case time complexity from O(n^2) to O(nlogn).
