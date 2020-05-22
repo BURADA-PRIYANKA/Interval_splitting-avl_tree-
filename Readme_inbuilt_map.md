@@ -1,4 +1,4 @@
-# Interval_splitting-avl_tree-
+# Interval_splitting_inbuilt_map
 
 Problem Description:- 
 Input - A set of real numbers which initially contains the epsilon value followed by certains points.
