@@ -1,0 +1,157 @@
+#include <stdio.h>
+#include <iostream>
+#include <fstream>
+#include <map>
+#include <vector>
+#include <stdlib.h>
+using namespace std;
+
+int main()
+{
+    int i=0;
+    ifstream infile;
+    infile.open("C:\\Users\\burad\\Desktop\\ohm.txt");
+    //cout<<"yes"<<endl;
+    double epsaks;
+    infile>>epsaks;
+    map<double,vector<double> > intervalmap;
+    double x ;
+    int num=0;
+    while ( infile>>x ){
+        i=0;
+        num++;
+    if(intervalmap.size()==0)
+    {
+        //cout<<"1"<<endl;
+        vector<double> temp;
+        temp.push_back(x);
+        temp.push_back(x);
+        intervalmap.insert(pair<double,vector<double> >(x,temp));
+        i++;
+    }
+    else
+    {
+        map<double,vector<double> >::iterator it = intervalmap.begin();
+        double currkey = it->first;
+        //cout<<"start "<<it->first<<" "<<endl;
+        vector<double> currvalue = intervalmap[currkey];
+        double prevkey = it->first;
+        vector<double> prevvalue = intervalmap[prevkey];
+        if(prevvalue[0]<=x && prevvalue[1]>=x)//x is in the interval
+        {
+            //cout<<"2"<<endl;
+            i++;
+        }
+        else if(prevvalue[0]<= x+epsaks && prevvalue[1]>=x+epsaks)//x+eps is in the first interval and extending the interval
+        {
+            //cout<<"3"<<endl;
+            vector<double> temp ;
+            temp.push_back(x);
+            temp.push_back(prevvalue[1]);
+            intervalmap.insert(pair<double,vector<double> >(x,temp));
+            intervalmap.erase(prevvalue[0]);
+            i++;
+        }
+        else if(prevvalue[0]>x+epsaks)// x is less than first interval lower bound-eps and adding it as a new interval
+        {
+            //cout<<"4"<<endl;
+            vector<double> temp ;
+            temp.push_back(x);
+            temp.push_back(x);
+            intervalmap.insert(pair<double,vector<double> >(x,temp));
+            i++;
+        }
+
+        while(i==0 && ++it != intervalmap.end())
+        {
+            prevvalue = currvalue;
+            prevkey = currkey;
+            currkey = it->first;
+            //cout<<it->first<<endl;
+            currvalue = intervalmap[currkey];
+            if(currvalue[0]<=x && currvalue[1]>=x)
+            {
+                //cout<<"5"<<endl;
+                i++;
+                break;
+            }
+            else
+            {
+                double d1 = x-prevvalue[1];
+                double d2 = currvalue[0]-x;
+                if(d2>0)
+                {
+                    if(d1>epsaks && d2>epsaks)//making a new interval
+                    {
+                        //cout<<"6"<<endl;
+                        vector<double> temp;
+                        temp.push_back(x);
+                        temp.push_back(x);
+                        intervalmap.insert(pair<double,vector<double> >(x,temp));
+                        i++;
+                        break;
+                    }
+                    else if(d1<=epsaks && d2>epsaks)//updating previous interval
+                    {
+                        //cout<<"7"<<endl;
+                        intervalmap[prevkey][1]=x;
+                        i++;
+                        break;
+                    }
+                    else if(d1>epsaks && d2<=epsaks)//extending the current interval
+                    {
+                        //cout<<"8"<<endl;
+                        vector<double> sam ;
+                        sam.push_back(x);
+                        sam.push_back(currvalue[1]);
+                        intervalmap.insert(pair<double,vector<double> >(x,sam));
+                        intervalmap.erase(currkey);
+                        i++;
+                        break;
+                    }
+                    else if(d1<=epsaks && d2<=epsaks)
+                    {
+                        //cout<<"9"<<endl;
+                        intervalmap[prevkey][1]=currvalue[1];
+                        intervalmap.erase(currkey);
+                        i++;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if(i==0)
+        {
+            if(currvalue[1] >= x-epsaks)//extending the last interval
+            {
+                //cout<<"10"<<endl;
+                intervalmap[currkey][1] = x;
+                i++;
+
+            }
+            else if(currvalue[1] < x-epsaks)//creating a new interval
+            {
+                //cout<<"11"<<endl;
+                vector<double> temp ;
+                temp.push_back(x);
+                temp.push_back(x);
+                intervalmap.insert(pair<double,vector<double> >(x,temp));
+                i++;
+            }
+        }
+
+    }
+
+    }
+
+    map<double,vector<double> >::iterator itp = intervalmap.begin();
+    while(itp!=intervalmap.end())
+    {
+        double te1 = itp->first;
+        vector<double> te2 = intervalmap[te1];
+        cout<<"( "<<te1<<","<<te2[1]<<" )"<<endl;
+        itp++;
+    }
+    return 0;
+}
