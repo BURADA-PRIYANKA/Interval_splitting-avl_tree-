@@ -5,3 +5,5 @@ When the inbuilt map was being used, while comparing the point to be inserted wi
 Now, we are supposed to modify the iterator such that it eliminates one of the subtrees of a node after we cross that node. But in an inbuilt map, we cannot access its tree.
 
 Because of the above mentioned problem we are supposed to build our own tree which have reduced the worst case time complexity from O(n^2) to O(nlogn).
+
+Getting a O(nlogn) algorithm is to be accepted as efficient because this can be related with a sorting algorithm and a sorting algorithm cannot have a time complexity less than O(nlogn).
